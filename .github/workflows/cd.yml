@@ -1,0 +1,65 @@
+name: cd
+
+on: 
+  push:
+    branches:
+      - main
+
+env:
+  ECR_REPOSITORY: "github-action-ecr"
+  AWS_REGION: "ap-south-1"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: login to ecr 
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: build, tag, and push image to ecr
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          cd laravel
+          docker image build \
+            --tag $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest \
+            --tag $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG \
+            .
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG"
+      
+      - name: Sed
+        run: |
+          cd laravel
+          sed -i 's/{{ACCOUNT_ID}}/${{ secrets.ACCOUNT_ID }}/' task-definition.json
+
+      - name: Render Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: laravel/task-definition.json
+          container-name: site
+          image: ${{ steps.build-image.outputs.image }}
+          
+
+      - name: Deploy to Amazon ECS service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: github-actions-ecr
+          cluster: github-actions-ecr
+          wait-for-service-stability: true
