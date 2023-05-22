@@ -13,7 +13,7 @@ env:
   TF_CLOUD_ORGANIZATION: "maheshbhoyar"
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
   TF_WORKSPACE: "github-action-ecr"
-  CONFIG_DIRECTORY: "./infra"
+  CONFIG_DIRECTORY: "infra"
 
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./infra
+        working-directory: infra
         shell: bash
 
     steps:
