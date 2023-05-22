@@ -3,7 +3,7 @@ terraform {
     organization = "maheshbhoyar"
 
     workspaces {
-      name = "lara-ecs"
+      name = "github-action-ecr"
     }
   }
   required_providers {
