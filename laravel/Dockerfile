@@ -9,7 +9,7 @@ COPY ./ $APP_DIR
 RUN apt update && apt upgrade -y
 
 
-# RUN apt install -y php-{opcache,pdo,bcmath,bz2,calendar,ctype,exif,ffi,fileinfo,ftp,gd,iconv,intl,json,mbstring,mysqli,phar,posix,readline,shmop,sockets,sysvmsg,sysvsem,sysvshm,tokenizer,zip,curl,ldap}
+RUN apt install -y php-{opcache,pdo,bcmath,bz2,calendar,ctype,exif,ffi,fileinfo,ftp,gd,iconv,intl,json,mbstring,mysqli,phar,posix,readline,shmop,sockets,sysvmsg,sysvsem,sysvshm,tokenizer,zip,curl,ldap}
 
 # RUN apk add --update \
 #     curl \
